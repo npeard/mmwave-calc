@@ -41,7 +41,8 @@ class FloquetOptimizer:
         Parameters
         ----------
         dt_list : List[float]
-            List of time steps
+            List of time intervals. Should be the same length as `hamiltonians`.
+            Pure phase rotations have dt = 0.
         hamiltonians : List[torch.Tensor]
             List of dense Hamiltonian matrices
 
@@ -52,15 +53,15 @@ class FloquetOptimizer:
         """
         # Initialize identity matrix
         dim = hamiltonians[0].shape[0]
-        U = torch.eye(dim, dtype=torch.complex128, device=self.device)
+        computed_unitary = torch.eye(dim, dtype=torch.complex128, device=self.device)
 
         # Process each time step sequentially
         for dt, H in zip(dt_list, hamiltonians):
             # H is already dense and on the correct device from FloquetProgram
             evolution = torch.matrix_exp(-1j * dt * H)
-            U = evolution @ U
+            computed_unitary = evolution @ computed_unitary
 
-        return U
+        return computed_unitary
 
     def compute_fidelity_loss(self, U1: torch.Tensor, U2: torch.Tensor) -> torch.Tensor:
         """
@@ -137,13 +138,13 @@ class FloquetOptimizer:
                     dt_list.append(dt)
 
             floquet_period = sum(dt_list)
-            target_U = self.program.get_target_unitary(floquet_period)
+            target_unitary = self.program.get_target_unitary(floquet_period)
 
             # Get current unitary
-            U = self.compute_floquet_unitary(dt_list, hamiltonian_list)
+            computed_unitary = self.compute_floquet_unitary(dt_list, hamiltonian_list)
 
             # Compute loss
-            loss = self.compute_fidelity_loss(U, target_U)
+            loss = self.compute_fidelity_loss(computed_unitary, target_unitary)
             losses.append(float(loss))
 
             if verbose and (epoch + 1) % 10 == 0:

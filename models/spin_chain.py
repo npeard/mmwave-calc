@@ -477,9 +477,9 @@ class DiagonEngine(ComputationStrategy):
         Parameters
         ----------
         matrix1 : quspin.operators.hamiltonian or np.ndarray
-            The first matrix, representing a Hamiltonian times evolution time.
+            The first matrix, representing a Hamiltonian multiplied by an evolution time.
         matrix2 : quspin.operators.hamiltonian or np.ndarray
-            The second matrix, representing a Hamiltonian times evolution time.
+            The second matrix, representing a Hamiltonian multiplied by an evolution time.
 
         Returns
         -------

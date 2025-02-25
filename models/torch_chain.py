@@ -90,22 +90,22 @@ class TorchSpinOperator:
             raise ValueError("Currently only spin-1/2 is supported")
 
         # Create sparse Pauli matrices
-        # σx
+        # sigma_x
         x_indices = torch.tensor([[0, 1], [1, 0]], dtype=torch.long)
         x_values = torch.ones(2, dtype=torch.complex128)
         sigma_x = torch.sparse_coo_tensor(x_indices.t(), x_values, (2, 2))
 
-        # σy
+        # sigma_y
         y_indices = torch.tensor([[0, 1], [1, 0]], dtype=torch.long)
         y_values = torch.tensor([-1j, 1j], dtype=torch.complex128)
         sigma_y = torch.sparse_coo_tensor(y_indices.t(), y_values, (2, 2))
 
-        # σz
+        # sigma_z
         z_indices = torch.tensor([[0, 0], [1, 1]], dtype=torch.long)
         z_values = torch.tensor([1, -1], dtype=torch.complex128)
         sigma_z = torch.sparse_coo_tensor(z_indices.t(), z_values, (2, 2))
 
-        # σ+ and σ-
+        # sigma_+ and sigma_-
         plus_indices = torch.tensor([[0], [1]], dtype=torch.long)
         plus_values = torch.ones(1, dtype=torch.complex128)
         sigma_plus = torch.sparse_coo_tensor(plus_indices, plus_values, (2, 2))
