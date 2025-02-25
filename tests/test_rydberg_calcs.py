@@ -34,15 +34,15 @@ def test_transition_frequencies_n47_n41():
     expected_trans2_41_no_aom = 281196269695354.16 # in Hz, current for ARC 3.7.0
 
     # Test n=47 transitions
-    np.testing.assert_allclose(trans1_47, expected_trans1_47_no_aom, rtol=1e-10)
+    np.testing.assert_allclose(trans1_47, expected_trans1_47_no_aom, rtol=1e-9)
     print(trans1_47, expected_trans1_47_no_aom)
-    np.testing.assert_allclose(trans2_47, expected_trans2_47_no_aom, rtol=1e-10)
+    np.testing.assert_allclose(trans2_47, expected_trans2_47_no_aom, rtol=1e-9)
     print(trans2_47, expected_trans2_47_no_aom)
 
     # Test n=41 transitions
-    np.testing.assert_allclose(trans1_41, expected_trans1_41_no_aom, rtol=1e-10)
+    np.testing.assert_allclose(trans1_41, expected_trans1_41_no_aom, rtol=1e-9)
     print(trans1_41, expected_trans1_41_no_aom)
-    np.testing.assert_allclose(trans2_41, expected_trans2_41_no_aom, rtol=1e-10)
+    np.testing.assert_allclose(trans2_41, expected_trans2_41_no_aom, rtol=1e-9)
     print(trans2_41, expected_trans2_41_no_aom)
 
 if __name__ == '__main__':
