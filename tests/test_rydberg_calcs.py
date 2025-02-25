@@ -27,12 +27,11 @@ def test_transition_frequencies_n47_n41():
     trans1_41 = n41_transition.transition1.get_transition_freq()
     trans2_41 = n41_transition.transition2.get_transition_freq()
 
-    # TODO: Replace these with the expected values you will provide
     expected_trans1_47_no_aom = 657932388964702.1  # in Hz
-    expected_trans2_47_no_aom = 281946996899169.75  # in Hz
+    expected_trans2_47_no_aom = 281946996953322.3  # in Hz, current for ARC 3.7.0
 
     expected_trans1_41_no_aom = 657932388964702.1  # in Hz
-    expected_trans2_41_no_aom = 281196269365663.06  # in Hz
+    expected_trans2_41_no_aom = 281196269695354.16 # in Hz, current for ARC 3.7.0
 
     # Test n=47 transitions
     np.testing.assert_allclose(trans1_47, expected_trans1_47_no_aom, rtol=1e-10)
