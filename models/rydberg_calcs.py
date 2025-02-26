@@ -116,7 +116,7 @@ class OpticalTransition:
         """
         gamma = 1 / cs().getStateLifetime(self.n2, self.l2, self.j2,
                                            temperature=300.0,
-                                           includeLevelsUpTo=self.n2 + 5)
+                                           includeLevelsUpTo=self.n2 + 5)/ 2*np.pi
         return gamma
 
     def get_transition_freq(self):
