@@ -180,22 +180,23 @@
                                                    <span class="n">power</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;cubic&#39;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="OpticalTransition.get_linewidth">
-<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.OpticalTransition.get_linewidth">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_linewidth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="OpticalTransition.get_natural_linewidth">
+<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.OpticalTransition.get_natural_linewidth">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_natural_linewidth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This function computes the linewidth of the excited state, given by the</span>
-<span class="sd">        inverse of the lifetime of the state.</span>
+<span class="sd">        This function computes the natural linewidth of the excited state, given by the</span>
+<span class="sd">        inverse of the lifetime of the state. This is the natural linewidth (rad/s), strangely,</span>
+<span class="sd">        and not simply a rate in Hz. But this is how Steck does it, so...</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        gamma : float</span>
-<span class="sd">            The linewidth of the excited state, in Hz.</span>
+<span class="sd">            The linewidth of the excited state, in radians*Hz or radians per second.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">gamma</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">cs</span><span class="p">()</span><span class="o">.</span><span class="n">getStateLifetime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">l2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="p">,</span>
                                            <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span>
                                            <span class="n">includeLevelsUpTo</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n2</span> <span class="o">+</span> <span class="mi">5</span><span class="p">)</span>
-        <span class="n">gamma</span> <span class="o">=</span> <span class="n">gamma</span><span class="o">/</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="c1"># unit in Hz instead of s_-1</span>
+
         <span class="k">return</span> <span class="n">gamma</span></div>
 
 
@@ -424,8 +425,8 @@
 <span class="sd">        the Rydberg parameters notebook.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">gamma2</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">gamma3</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">gamma2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition1</span><span class="o">.</span><span class="n">get_linewidth</span><span class="p">()</span>
-            <span class="n">gamma3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">get_linewidth</span><span class="p">()</span>
+            <span class="n">gamma2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition1</span><span class="o">.</span><span class="n">get_natural_linewidth</span><span class="p">()</span>
+            <span class="n">gamma3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">get_natural_linewidth</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">rabiFreq1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">rabiFreq2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">Delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">rabiFreq2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">gamma2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">gamma3</span><span class="p">))</span>
@@ -571,9 +572,9 @@
 <span class="sd">        frequency is given in MHz. The pi pulse duration is given in ns.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">trans1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition1</span><span class="o">.</span><span class="n">get_transition_freq</span><span class="p">()</span>
-        <span class="n">line1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition1</span><span class="o">.</span><span class="n">get_linewidth</span><span class="p">()</span>
+        <span class="n">line1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition1</span><span class="o">.</span><span class="n">get_natural_linewidth</span><span class="p">()</span>
         <span class="n">trans2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">get_transition_freq</span><span class="p">()</span>
-        <span class="n">line2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">get_linewidth</span><span class="p">()</span>
+        <span class="n">line2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">get_natural_linewidth</span><span class="p">()</span>
         <span class="n">rabiFreq_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition1</span><span class="o">.</span><span class="n">get_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pp</span><span class="p">)</span>
         <span class="n">rabiFreq_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">get_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pc</span><span class="p">)</span>
         <span class="n">Delta0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optimal_detuning</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">=</span><span class="n">rabiFreq_1</span><span class="p">,</span>
