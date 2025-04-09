@@ -104,19 +104,21 @@ class OpticalTransition:
         self.Power_from_RabiAngularFreq = interp1d(Power_from_RabiAngularFreq,
                                                    power, kind='cubic')
 
-    def get_linewidth(self):
+    def get_natural_linewidth(self):
         """
-        This function computes the linewidth of the excited state, given by the
-        inverse of the lifetime of the state.
+        This function computes the natural linewidth of the excited state, given by the
+        inverse of the lifetime of the state. This is the natural linewidth (rad/s), strangely,
+        and not simply a rate in Hz. But this is how Steck does it, so...
 
         Returns
         -------
         gamma : float
-            The linewidth of the excited state, in Hz.
+            The linewidth of the excited state, in radians*Hz or radians per second.
         """
         gamma = 1 / cs().getStateLifetime(self.n2, self.l2, self.j2,
                                            temperature=300.0,
                                            includeLevelsUpTo=self.n2 + 5)
+
         return gamma
 
     def get_transition_freq(self):
@@ -327,8 +329,8 @@ class RydbergTransition:
         the Rydberg parameters notebook.
         """
         if gamma2 is None or gamma3 is None:
-            gamma2 = self.transition1.get_linewidth()
-            gamma3 = self.transition2.get_linewidth()
+            gamma2 = self.transition1.get_natural_linewidth()
+            gamma3 = self.transition2.get_natural_linewidth()
 
         if rabiFreq1 is not None and rabiFreq2 is not None:
             Delta = np.sqrt(rabiFreq1**2 + rabiFreq2**2) / 2 * np.sqrt(gamma2 / (2 * gamma3))
@@ -462,9 +464,9 @@ class RydbergTransition:
         frequency is given in MHz. The pi pulse duration is given in ns.
         """
         trans1 = self.transition1.get_transition_freq()
-        line1 = self.transition1.get_linewidth()
+        line1 = self.transition1.get_natural_linewidth()
         trans2 = self.transition2.get_transition_freq()
-        line2 = self.transition2.get_linewidth()
+        line2 = self.transition2.get_natural_linewidth()
         rabiFreq_1 = self.transition1.get_rabi_angular_freq(laserPower=Pp)
         rabiFreq_2 = self.transition2.get_rabi_angular_freq(laserPower=Pc)
         Delta0 = self.get_optimal_detuning(rabiFreq1=rabiFreq_1,

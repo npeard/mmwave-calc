@@ -444,8 +444,8 @@ class LossyRydberg(UnitaryRydberg):
         self.rho0 = np.asarray([[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.complex128)
 
         # decay rates
-        self.gamma2 = self.transition.transition1.get_linewidth()
-        self.gamma3 = self.transition.transition2.get_linewidth()
+        self.gamma2 = self.transition.transition1.get_natural_linewidth()
+        self.gamma3 = self.transition.transition2.get_natural_linewidth()
 
     @staticmethod
     @njit('float64[:,:](float64, float64, float64, float64)')
@@ -547,9 +547,9 @@ class LossyRydberg(UnitaryRydberg):
 
         vonNeumann = -1j * (Ht @ rho - rho @ Ht)
 
-        loss_e = 2*np.pi*gamma2 * (spLoss1 @ (rho @ spLoss1.T)
+        loss_e = gamma2 * (spLoss1 @ (rho @ spLoss1.T)
                            - 0.5 * (spLoss1.T @ (spLoss1 @ rho) + rho @ (spLoss1.T @ spLoss1)))
-        loss_r = 2*np.pi*gamma3 * (spLoss2 @ (rho @ spLoss2.T)
+        loss_r = gamma3 * (spLoss2 @ (rho @ spLoss2.T)
                            - 0.5 * (spLoss2.T @ (spLoss2 @ rho) + rho @ (spLoss2.T @ spLoss2)))
 
         dot_rho = vonNeumann + loss_e + loss_r
