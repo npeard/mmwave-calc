@@ -328,7 +328,7 @@ class UnitaryRydberg:
         Omega23 = self.func_Omega23_from_Power(self.couple_power).item()
 
         # compensate AC stark shift
-        self.delta = self.transition.get_diff_ryd_ac_stark(probe_peak_power, couple_power)
+        self.delta = 0
 
         # calculate Hamiltonians
         H_array = self.get_hamiltonian_array(
@@ -400,8 +400,7 @@ class UnitaryRydberg:
         Omega23 = self.func_Omega23_from_Power(self.couple_power).item()
 
         # compensate AC stark shift
-        self.delta = self.transition.get_diff_ryd_ac_stark(probe_peak_power,
-                                                           couple_power)
+        self.delta = 0
 
         # solve initial value problem
         sol = solve_ivp(self.get_dot_rho, y0=np.ravel(self.rho0),
@@ -741,7 +740,7 @@ class LossyRydberg(UnitaryRydberg):
     def duo_pulse_lindblad(self, probe_duration, probe_delay, probe_hold,
                            probe_peak_power, couple_duration, couple_delay,
                            couple_hold, couple_peak_power,
-                           Delta=0.0):
+                           Delta=0.0, delta=0.0):
         """
         Simulate a two-pulse sequence, first a probe pulse, then a couple pulse,
         and compute the populations of the ground state, the intermediate state,
@@ -790,7 +789,7 @@ class LossyRydberg(UnitaryRydberg):
         max_Omega12 = self.func_Omega12_from_Power(probe_peak_power)
         max_Omega23 = self.func_Omega23_from_Power(couple_peak_power)
         self.Delta = Delta
-        self.delta = 0.0
+        self.delta = delta
         max_freq = np.max([max_Omega12, max_Omega23, self.Delta])
         stop_time = (probe_delay + probe_duration + probe_hold +
                      couple_delay + couple_duration + couple_hold + 10e-9)
