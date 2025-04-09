@@ -266,8 +266,8 @@ def plot_rho_dynamics() -> None:
                                                       delay=10e-9,
                                                       hold=27e-9,
                                                       probe_peak_power=1e-3,
-                                                      couple_power=0.1,
-                                                      Delta=1.3e10)
+                                                      couple_power=0.2,
+                                                      Delta=3.3e9)
 
     fig, ax1 = plt.subplots(figsize=(8, 8))
     ax2 = ax1.twinx()
@@ -294,11 +294,13 @@ def plot_lindblad_dynamics() -> None:
     delay, hold time, probe peak power, coupling power, and detuning.
     """
     runner = rydnamics.LossyRydberg()
+    runner.gamma2 = 0.0  # Set intermediate state loss to zero
+    runner.gamma3 = 0.0  # Set Rydberg state loss to zero
 
     Ground, Inter, Rydberg, Sweep, time, Loss = runner.probe_pulse_lindblad(
-        duration=0e-9, delay=5e-9, hold=200e-9, probe_peak_power=9e-3,
-        couple_power=2.8,
-        Delta=2*np.pi*3.3*1e9, evolve_time=500e-9)
+        duration=5e-9, delay=10e-9, hold=27e-9, probe_peak_power=1e-3,
+        couple_power=0.2,
+        Delta=3.3*1e9)
     fig, ax1 = plt.subplots(figsize=(8, 8))
     ax2 = ax1.twinx()
     ax1.plot(time, Ground, label="Ground Population")
@@ -699,29 +701,6 @@ def plot_lindblad_duo_pulse_spectrum(probe_duration: float = 0, probe_delay: flo
     plt.grid(True)
     plt.show()
 
-
 if __name__ == '__main__':
-    # plot_lindblad_dynamics()
-
-    # coupling_powers = np.linspace(0.001, 0.2, 10)
-    # probe_peak_power = np.linspace(0.001, 0.01, 10)
-    # plot_lindblad_fast_probe(coupling_powers=coupling_powers,
-    #                                    probe_peak_power=probe_peak_power)
-
-    # # Test the new spectrum plotting function
-    # plot_lindblad_duo_pulse_spectrum(probe_duration=0, probe_delay=10e-9,
-    #                                probe_hold=200e-9, probe_peak_power=9e-3,
-    #                                couple_duration=0, couple_delay=10e-9,
-    #                                couple_hold=200e-9, couple_peak_power=2.8,
-    #                                Delta=2*np.pi*3.3e9)
-
-    plot_duo_pulse(probe_duration=0, probe_delay=10e-9, probe_hold=5e-6,
-                   probe_peak_power=0.9e-3, couple_duration=0, couple_delay=10e-9,
-                   couple_hold=5e-6, couple_peak_power=137e-3,
-                   Delta=2*np.pi*300*1e6)
-
-    # probe_delays = np.linspace(0, 50e-9, 20)
-    # couple_delays = np.linspace(0, 50e-9, 20)
-    # plot_lindblad_duo_pulse(probe_delays=probe_delays,
-    #                         couple_delays=couple_delays,
-    #                         probe_peak_power=20e-3, couple_peak_power=5)
+    #plot_rho_dynamics()
+    plot_lindblad_dynamics()

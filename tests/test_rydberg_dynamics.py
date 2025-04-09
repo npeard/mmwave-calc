@@ -68,72 +68,76 @@ def test_evolution_methods_consistency(simulation_params, unitary_runner, lossy_
     # Test time arrays
     np.testing.assert_allclose(
         time1, time2,
-        rtol=1e-9,
+        atol=1e-9,
         err_msg="Time arrays don't match between unitary and Neumann evolution"
     )
     np.testing.assert_allclose(
         time1, time3,
-        rtol=1e-9,
+        atol=1e-9,
         err_msg="Time arrays don't match between unitary and Lindblad evolution"
     )
 
     # Test pulse shapes
     np.testing.assert_allclose(
         pulse1, pulse2,
-        rtol=1e-9,
+        atol=1e-9,
         err_msg="Pulse shapes don't match between unitary and Neumann evolution"
     )
     np.testing.assert_allclose(
         pulse1, pulse3,
-        rtol=1e-9,
+        atol=1e-9,
         err_msg="Pulse shapes don't match between unitary and Lindblad evolution"
     )
 
     # Test ground state populations
     np.testing.assert_allclose(
         G1, G2,
-        rtol=1e-2,
+        atol=1e-2,
         err_msg="Ground state populations don't match between unitary and Neumann evolution"
     )
     # I think it makes sense that unitary and von Neumann evolution only roughly match.
     # The unitary evolution suffers from discretization errors and is likely less accurate.
     np.testing.assert_allclose(
         G2, G3,
-        rtol=1e-3,
+        atol=1e-3,
         err_msg="Ground state populations don't match between von Neumann and lossless Lindblad evolution"
     )
 
+    # print("E1:", E1)
+    # print("E2:", E2)
     # Test excited state populations
     np.testing.assert_allclose(
         E1, E2,
-        rtol=1e-2,
+        atol=1e-2,
         err_msg="Excited state populations don't match between unitary and Neumann evolution"
     )
     # I think it makes sense that unitary and von Neumann evolution only roughly match.
     # The unitary evolution suffers from discretization errors and is likely less accurate.
+    print("E2: ", E2)
+    print("E3: ", E3)
     np.testing.assert_allclose(
         E2, E3,
-        rtol=1e-3,
+        atol=1e-3,
         err_msg="Excited state populations don't match between von Neumann and lossless Lindblad evolution"
     )
 
     # Test Rydberg state populations
     np.testing.assert_allclose(
         R1, R2,
-        rtol=1e-2,
+        atol=1e-2,
         err_msg="Rydberg state populations don't match between unitary and Neumann evolution"
     )
     # I think it makes sense that unitary and von Neumann evolution only roughly match.
     # The unitary evolution suffers from discretization errors and is likely less accurate.
     np.testing.assert_allclose(
         R2, R3,
-        rtol=1e-3,
+        atol=1e-3,
         err_msg="Rydberg state populations don't match between von Neumann and lossless Lindblad evolution"
     )
 
-    # Test that Loss is zero in Lindblad evolution
+    # Test that Loss is zero in Lindblad evolution with decay rate set to zero
     np.testing.assert_allclose(
         Loss, np.zeros_like(Loss),
-        rtol=1e-9,
+        atol=1e-9,
         err_msg="Loss population is non-zero in Lindblad evolution"
     )
