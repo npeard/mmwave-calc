@@ -294,8 +294,8 @@ def plot_lindblad_dynamics() -> None:
     delay, hold time, probe peak power, coupling power, and detuning.
     """
     runner = rydnamics.LossyRydberg()
-    runner.gamma2 = 0.0  # Set intermediate state loss to zero
-    runner.gamma3 = 0.0  # Set Rydberg state loss to zero
+    #runner.gamma2 = 0.0  # Set intermediate state loss to zero
+    #runner.gamma3 = 0.0  # Set Rydberg state loss to zero
 
     Ground, Inter, Rydberg, Sweep, time, Loss = runner.probe_pulse_lindblad(
         duration=5e-9, delay=10e-9, hold=27e-9, probe_peak_power=1e-3,
@@ -311,6 +311,76 @@ def plot_lindblad_dynamics() -> None:
     ax1.legend()
     ax2.legend()
     ax2.set_ylabel("Power (W)")
+    plt.show()
+
+
+def plot_state_vs_probe_duration(probe_durations: Optional[List[float]] = None) -> None:
+    """
+    Plot the final state populations vs probe beam duration with coupling power set to zero.
+
+    Parameters:
+    - probe_durations: A list of probe durations to simulate (in seconds)
+    """
+    if probe_durations is None:
+        probe_durations = np.linspace(0, 500e-9, 500)  # 0 to 500 ns
+
+    runner = rydnamics.LossyRydberg()
+
+    # Initialize arrays to store final populations
+    ground_final = []
+    inter_final = []
+    loss_final = []
+
+    # Get pulse shape for the entire time range
+    time_points = np.linspace(0, np.max(probe_durations), 1000)
+    pulse_shape = []
+
+    for duration in tqdm(probe_durations):
+        Ground, Inter, _, pulse, time, Loss = runner.probe_pulse_lindblad(
+            duration=0,
+            delay=10e-9,
+            hold=duration,
+            probe_peak_power=10e-6,  # 10 µW probe power
+            couple_power=0.0,  # Coupling power set to zero
+            Delta=0.0  # No detuning
+        )
+
+        # Store final populations
+        ground_final.append(Ground[-1])
+        inter_final.append(Inter[-1])
+        loss_final.append(Loss[-1])
+
+        # Store pulse shape for the last iteration (will be the longest duration)
+        if duration == probe_durations[-1]:
+            pulse_shape = pulse
+            final_time = time
+
+    # Convert lists to numpy arrays
+    ground_final = np.array(ground_final)
+    inter_final = np.array(inter_final)
+    loss_final = np.array(loss_final)
+
+    # Create the plot with two subplots sharing x axis
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), height_ratios=[2, 1], sharex=True)
+    fig.suptitle('7P Loss vs Blue Resonance Duration')
+
+    # Plot populations on top subplot
+    ax1.plot(probe_durations/1e-9, ground_final, label='6S1/2 F=4')
+    ax1.plot(probe_durations/1e-9, inter_final, label='7P3/2 F=5')
+    ax1.plot(probe_durations/1e-9, loss_final, label='Loss')
+    ax1.set_ylabel('Population')
+    ax1.legend()
+    ax1.grid(True)
+    ax1.set_title(f'Probe Power: {10e-6*1e6:.1f} µW')
+
+    # Plot pulse shape on bottom subplot
+    ax2.plot(final_time/1e-9, pulse_shape*1e6, 'c-', label='456nm Pulse')
+    ax2.set_xlabel('Time (ns)')
+    ax2.set_ylabel('Power (µW)')
+    ax2.legend()
+    ax2.grid(True)
+
+    plt.tight_layout()
     plt.show()
 
 
@@ -447,7 +517,7 @@ def plot_lindblad_fast_probe(coupling_powers: Optional[List[float]] = None, prob
     Loss_pop = np.reshape(Loss_pop, (len(probe_peak_power), len(coupling_powers))).T
 
     Ground_pop = np.asarray(Ground_final)
-    Ground_pop = np.reshape(Ground_pop, (len(probe_peak_power), len(coupling_powers))).T
+    Ground_pop = np.reshape(Ground_final, (len(probe_peak_power), len(coupling_powers))).T
 
     # setup plotting
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2)
@@ -586,7 +656,7 @@ def plot_lindblad_duo_pulse(probe_delays: Optional[List[float]] = None, couple_d
                           (len(probe_delays), len(couple_delays))).T
 
     Ground_pop = np.asarray(Ground_final)
-    Ground_pop = np.reshape(Ground_pop,
+    Ground_pop = np.reshape(Ground_final,
                             (len(probe_delays), len(couple_delays))).T
 
     # setup plotting
@@ -703,4 +773,5 @@ def plot_lindblad_duo_pulse_spectrum(probe_duration: float = 0, probe_delay: flo
 
 if __name__ == '__main__':
     #plot_rho_dynamics()
-    plot_lindblad_dynamics()
+    #plot_lindblad_dynamics()
+    plot_state_vs_probe_duration()
