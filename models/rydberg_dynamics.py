@@ -706,7 +706,7 @@ class LossyRydberg(UnitaryRydberg):
         else:
             self.Delta = Delta
         max_freq = np.max([max_Omega12, max_Omega23, self.Delta])
-        stop_time = delay + 2*duration + hold + 10e-9 + evolve_time
+        stop_time = delay + duration + hold + 10e-9 + evolve_time
         self.time_array = np.linspace(0, stop_time, int(2 * stop_time *
                                                         max_freq) + 1)
 
