@@ -314,7 +314,7 @@ def plot_lindblad_dynamics() -> None:
     plt.show()
 
 
-def plot_state_vs_probe_duration(probe_durations: Optional[List[float]] = None) -> None:
+def plot_7p_vs_probe_duration(probe_durations: Optional[List[float]] = None) -> None:
     """
     Plot the final state populations vs probe beam duration with coupling power set to zero.
 
@@ -337,8 +337,8 @@ def plot_state_vs_probe_duration(probe_durations: Optional[List[float]] = None) 
 
     for duration in tqdm(probe_durations):
         Ground, Inter, _, pulse, time, Loss = runner.probe_pulse_lindblad(
-            duration=0,
-            delay=10e-9,
+            duration=0, # rise/fall time
+            delay=10e-9, # small delay before time evolution
             hold=duration,
             probe_peak_power=10e-6,  # 10 µW probe power
             couple_power=0.0,  # Coupling power set to zero
@@ -367,7 +367,7 @@ def plot_state_vs_probe_duration(probe_durations: Optional[List[float]] = None) 
     # Plot populations on top subplot
     ax1.plot(probe_durations/1e-9, ground_final, label='6S1/2 F=4')
     ax1.plot(probe_durations/1e-9, inter_final, label='7P3/2 F=5')
-    ax1.plot(probe_durations/1e-9, loss_final, label='Loss')
+    ax1.plot(probe_durations/1e-9, loss_final, label='Loss', color='red')
     ax1.set_ylabel('Population')
     ax1.legend()
     ax1.grid(True)
@@ -774,4 +774,4 @@ def plot_lindblad_duo_pulse_spectrum(probe_duration: float = 0, probe_delay: flo
 if __name__ == '__main__':
     #plot_rho_dynamics()
     #plot_lindblad_dynamics()
-    plot_state_vs_probe_duration()
+    plot_7p_vs_probe_duration()

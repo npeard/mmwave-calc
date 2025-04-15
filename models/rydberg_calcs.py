@@ -1,6 +1,7 @@
 from arc import Cesium as cs
 import numpy as np
 from scipy.interpolate import interp1d
+from tqdm import tqdm
 
 class OpticalTransition:
     def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, f1=4,
@@ -89,7 +90,8 @@ class OpticalTransition:
         """
         power = np.logspace(-6, 1, 200)
         Power_from_RabiAngularFreq = []
-        for p in power:
+        print("Generating fast lookup functions for Rabi angular frequencies vs. power.")
+        for p in tqdm(power):
             Power_from_RabiAngularFreq.append(self.get_rabi_angular_freq(laserPower=p))
         Power_from_RabiAngularFreq = np.array(Power_from_RabiAngularFreq)
 
@@ -103,6 +105,7 @@ class OpticalTransition:
         # inverse
         self.Power_from_RabiAngularFreq = interp1d(Power_from_RabiAngularFreq,
                                                    power, kind='cubic')
+        print("Fast lookup functions generated.")
 
     def get_natural_linewidth(self):
         """
