@@ -1,7 +1,7 @@
 pytest>=7.0.0
 black>=23.0.0
 flake8>=6.0.0
-numpy
+numpy==1.26.4
 scipy
 matplotlib
 ARC-Alkali-Rydberg-Calculator==3.7.0
@@ -10,3 +10,4 @@ scikit-optimize
 quspin
 block2
 torch
+tqdm
