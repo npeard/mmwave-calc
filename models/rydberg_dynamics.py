@@ -720,11 +720,15 @@ class LossyRydberg(UnitaryRydberg):
         # compensate AC stark shift
         self.delta = 0
 
+        print(max_freq)
+        print(0.5/max_freq)
+
         # solve initial value problem
         sol = solve_ivp(self.get_dot_rho, y0=np.ravel(self.rho0),
                         t_span=[np.min(self.time_array), np.max(
                             self.time_array)], t_eval=self.time_array, args=(
-            duration, delay, hold, probe_peak_power, Omega23), first_step=1e-9)
+            duration, delay, hold, probe_peak_power, Omega23), max_step=0.1/max_freq)
+        # TODO: max_step here could probably be chosen more intelligently
         rho_t = np.reshape(sol.y, (4, 4, len(self.time_array)))
         rho_t = np.real(rho_t)
 
