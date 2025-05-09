@@ -1,13 +1,20 @@
 from arc import Cesium as cs
 import numpy as np
 from scipy.interpolate import interp1d
+from scipy.constants import physical_constants, pi, epsilon_0, hbar
+from scipy.constants import k as C_k
+from scipy.constants import c as C_c
+from scipy.constants import h as C_h
+from scipy.constants import e as C_e
+from scipy.constants import m_e as C_m_e
+from scipy.constants import alpha as C_alpha
 
 class OpticalTransition:
     def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, f1=4,
                  n2=7, l2=1, j2=1.5, mj2=1.5, f2=5, q=0):
         """
-        Initialize a transition between two energy levels in Cesium. Default
-        is the Cs F=4 GS to 7P3/2 transition.
+        Initialize an electric dipole transition between two energy levels in Cesium. Default
+        is the Cs F=4 GS to 7P3/2 F=5 transition.
 
         Parameters
         ----------
@@ -57,6 +64,12 @@ class OpticalTransition:
         self.mj2 = mj2
         self.f2 = f2
         self.q = q
+
+        self.matrixElement = cs().getDipoleMatrixElement(n1=self.n1, l1=self.l1,
+                                                   j1=self.j1, mj1=self.mj1,
+                                                   n2=self.n2, l2=self.l2,
+                                                   j2=self.j2, mj2=self.mj2,
+                                                   q=self.q)
 
         self.RabiAngularFreq_from_Power = None
         self.Power_from_RabiAngularFreq = None
@@ -138,18 +151,26 @@ class OpticalTransition:
                                            l2=self.l2, j2=self.j2)
 
         # HFS energy shift, ARC database doesn't have values for Rydbergs n > ?
-        HFS_g = 0
-        HFS_e = 0
-        if self.n1 < 10:
+        try:
             HFS_g = cs().getHFSEnergyShift(j=self.j1, f=self.f1,
                                            A=cs().getHFSCoefficients(n=self.n1,
                                                                      l=self.l1,
                                                                      j=self.j1)[0])
-        if self.n2 < 10:
+        except Exception as e:
+            print(f"HFS energy shift not found for n={self.n1}, l={self.l1}, j={self.j1}")
+            print("ARC database doesn't have values for Rydbergs n > ?")
+            print("Setting HFS energy shift to 0")
+            HFS_g = 0
+        try:
             HFS_e = cs().getHFSEnergyShift(j=self.j2, f=self.f2,
                                            A=cs().getHFSCoefficients(n=self.n2,
                                                                      l=self.l2,
                                                                      j=self.j2)[0])
+        except Exception as e:
+            print(f"HFS energy shift not found for n={self.n2}, l={self.l2}, j={self.j2}")
+            print("ARC database doesn't have values for Rydbergs n > ?")
+            print("Setting HFS energy shift to 0")
+            HFS_e = 0
 
         return freq - HFS_g + HFS_e
 
