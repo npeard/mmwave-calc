@@ -7,15 +7,18 @@ from numba import njit, objmode
 
 
 class UnitaryRydberg:
-    def __init__(self):
+    def __init__(self, transition: ryd.RydbergTransition = None):
         """
         Initialize the UnitaryRydberg class with default parameters. This
         class computes dynamics of the Rydberg transition without dissipation.
 
         This constructor sets up the initial quantum state, time array, and
-        power parameters for the Rydberg transition dynamics. It also
-        initializes the RydbergTransition instance and prepares interpolated
-        functions for fast Rabi frequency lookup based on given power.
+        power parameters for the Rydberg transition dynamics.
+
+        Parameters
+        ----------
+        transition : RydbergTransition
+            Instance of RydbergTransition for handling transition parameters.
 
         Attributes
         ----------
@@ -36,9 +39,9 @@ class UnitaryRydberg:
         transition : RydbergTransition
             Instance of RydbergTransition for handling transition parameters.
         func_Omega12_from_Power : callable
-            Function to compute Rabi frequency for the E state from power.
+            Function to compute Rabi angular frequency for the E state from power.
         func_Omega23_from_Power : callable
-            Function to compute Rabi frequency for the Rydberg state from power.
+            Function to compute Rabi angular frequency for the Rydberg state from power.
         """
         # initial state
         self.psi0 = np.asarray([1, 0, 0], dtype=np.complex128)
@@ -51,13 +54,18 @@ class UnitaryRydberg:
         self.couple_power = None  # watts
         self.Delta = None
         self.delta = None
-        self.transition = ryd.RydbergTransition(q2=-1, n3=41, l3=0, j3=0.5, mj3=0.5, f3=4)
 
-        # interpolated Rabi angular frequencies for fast lookup
-        self.func_Omega12_from_Power = (
-            self.transition.transition1.RabiAngularFreq_from_Power)
-        self.func_Omega23_from_Power = (
-            self.transition.transition2.RabiAngularFreq_from_Power)
+        if transition is None:
+            transition = ryd.RydbergTransition(f1=4, mf1=4, q1=1,
+                                               n2=7, l2=1, j2=1.5, mj2=1.5, f2=5, mf2=5, q2=-1,
+                                               n3=41, l3=0, j3=0.5, mj3=0.5, f3=4, mf3=4)
+            print(f"No transition provided, using default to n={transition.transition2.n2}, l={transition.transition2.l2}, j={transition.transition2.j2}")
+
+        self.transition = transition
+
+        # fast method for Rabi angular frequencies from power
+        self.func_Omega12_from_Power = self.transition.transition1.get_rabi_angular_freq
+        self.func_Omega23_from_Power = self.transition.transition2.get_rabi_angular_freq
 
     @staticmethod
     @njit('float64[:,:,:](float64[:], float64, float64, float64)')
@@ -406,7 +414,7 @@ class UnitaryRydberg:
         sol = solve_ivp(self.get_dot_rho, y0=np.ravel(self.rho0),
                         t_span=[np.min(self.time_array), np.max(
                             self.time_array)], t_eval=self.time_array, args=(
-            duration, delay, hold, probe_peak_power, Omega23))
+            duration, delay, hold, probe_peak_power, Omega23), max_step=1e-9)
         rho_t = np.reshape(sol.y, (3, 3, len(self.time_array)))
         rho_t = np.real(rho_t)
 
@@ -725,7 +733,7 @@ class LossyRydberg(UnitaryRydberg):
         sol = solve_ivp(self.get_dot_rho, y0=np.ravel(self.rho0),
                         t_span=[np.min(self.time_array), np.max(
                             self.time_array)], t_eval=self.time_array, args=(
-            duration, delay, hold, probe_peak_power, Omega23), first_step=1e-9)
+            duration, delay, hold, probe_peak_power, Omega23), max_step=1e-9)
         rho_t = np.reshape(sol.y, (4, 4, len(self.time_array)))
         rho_t = np.real(rho_t)
 
@@ -812,7 +820,7 @@ class LossyRydberg(UnitaryRydberg):
                             self.time_array)], t_eval=self.time_array, args=(
             probe_duration, probe_delay, probe_hold, probe_peak_power,
             couple_duration, couple_delay, couple_hold,
-            couple_peak_power), first_step=1e-9)
+            couple_peak_power), max_step=1e-9)
         rho_t = np.reshape(sol.y, (4, 4, len(self.time_array)))
         rho_t = np.real(rho_t)
 

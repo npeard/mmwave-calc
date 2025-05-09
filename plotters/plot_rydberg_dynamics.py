@@ -773,5 +773,5 @@ def plot_lindblad_duo_pulse_spectrum(probe_duration: float = 0, probe_delay: flo
 
 if __name__ == '__main__':
     #plot_rho_dynamics()
-    #plot_lindblad_dynamics()
-    plot_state_vs_probe_duration()
+    plot_lindblad_dynamics()
+    #plot_state_vs_probe_duration()

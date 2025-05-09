@@ -578,25 +578,3 @@ class RydbergTransition:
 
         print("Saturation Power E (mW)", satPower_E * 1e3)
         print("Saturation Power R (mW)", satPower_R * 1e3)
-
-
-if __name__ == '__main__':
-    transition40 = RydbergTransition(laserWaist=25e-6, n1=6, l1=0, j1=0.5,
-                                     mj1=0.5, f1=4, q1=1, n2=7, l2=1, j2=1.5,
-                                     mj2=1.5, f2=5,
-                                     q2=-1, n3=40, l3=0, j3=0.5)
-
-    transition40.print_laser_frequencies(Pp=0.010, Pc=2)
-
-    powers = np.linspace(0, 10, 1000)
-    rabiFreqs = [transition40.transition2.RabiAngularFreq_from_Power(p) for p
-                 in powers]
-    powersOut = [transition40.transition2.Power_from_RabiAngularFreq(f) for
-                 f in
-                 rabiFreqs]
-    import matplotlib.pyplot as plt
-    plt.plot(powers, rabiFreqs)
-    plt.plot(powersOut, rabiFreqs)
-    plt.xlabel('Power (W)')
-    plt.ylabel('Rabi Frequency (Hz)')
-    plt.show()
