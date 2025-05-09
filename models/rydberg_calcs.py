@@ -2,16 +2,12 @@ from arc import Cesium as cs
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.constants import physical_constants, pi, epsilon_0, hbar
-from scipy.constants import k as C_k
 from scipy.constants import c as C_c
-from scipy.constants import h as C_h
 from scipy.constants import e as C_e
-from scipy.constants import m_e as C_m_e
-from scipy.constants import alpha as C_alpha
 
 class OpticalTransition:
-    def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, f1=4,
-                 n2=7, l2=1, j2=1.5, mj2=1.5, f2=5, q=0):
+    def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, f1=None, mf1=None,
+                 n2=7, l2=1, j2=1.5, mj2=1.5, f2=None, mf2=None, q=0):
         """
         Initialize an electric dipole transition between two energy levels in Cesium. Default
         is the Cs F=4 GS to 7P3/2 F=5 transition.
@@ -58,23 +54,39 @@ class OpticalTransition:
         self.j1 = j1
         self.mj1 = mj1
         self.f1 = f1
+        self.mf1 = mf1
         self.n2 = n2
         self.l2 = l2
         self.j2 = j2
         self.mj2 = mj2
         self.f2 = f2
+        self.mf2 = mf2
         self.q = q
 
-        self.matrixElement = cs().getDipoleMatrixElement(n1=self.n1, l1=self.l1,
+        try:
+            if self.f1 is not None and self.f2 is not None and self.mf1 is not None and self.mf2 is not None:
+                self.matrixElement = cs().getDipoleMatrixElementHFS(n1=self.n1, l1=self.l1,
+                                                    j1=self.j1, f1=self.f1, mf1=self.mf1,
+                                                    n2=self.n2, l2=self.l2,
+                                                    j2=self.j2, f2=self.f2,
+                                                    mf2=self.mf2, q=self.q)
+                print(f"Using HFS matrix element {self.matrixElement}")
+            else:
+                raise Exception("HFS quantum numbers not defined")
+        except Exception as e:
+            print(e)
+            print(f"Failed to get HFS matrix element for transition to n={self.n2}, l={self.l2}, j={self.j2}, f={self.f2}, mf={self.mf2}, q={self.q}")
+            self.matrixElement = cs().getDipoleMatrixElement(n1=self.n1, l1=self.l1,
                                                    j1=self.j1, mj1=self.mj1,
                                                    n2=self.n2, l2=self.l2,
                                                    j2=self.j2, mj2=self.mj2,
                                                    q=self.q)
+            print(f"Using non-HFS matrix element {self.matrixElement}")
 
         self.RabiAngularFreq_from_Power = None
         self.Power_from_RabiAngularFreq = None
 
-        self.init_fast_lookup()
+        #self.init_fast_lookup()
 
     def init_fast_lookup(self):
         """
@@ -158,7 +170,7 @@ class OpticalTransition:
                                                                      j=self.j1)[0])
         except Exception as e:
             print(f"HFS energy shift not found for n={self.n1}, l={self.l1}, j={self.j1}")
-            print("ARC database doesn't have values for Rydbergs n > ?")
+            print("ARC database doesn't have HFS values for Rydbergs n > ?")
             print("Setting HFS energy shift to 0")
             HFS_g = 0
         try:
@@ -168,7 +180,7 @@ class OpticalTransition:
                                                                      j=self.j2)[0])
         except Exception as e:
             print(f"HFS energy shift not found for n={self.n2}, l={self.l2}, j={self.j2}")
-            print("ARC database doesn't have values for Rydbergs n > ?")
+            print("ARC database doesn't have HFS values for Rydbergs n > ?")
             print("Setting HFS energy shift to 0")
             HFS_e = 0
 
@@ -176,7 +188,8 @@ class OpticalTransition:
 
     def get_rabi_angular_freq(self, laserPower):
         """
-        Compute the Rabi angular frequency for the transition.
+        Returns a Rabi angular frequency for resonantly driven atom in a
+        center of TEM00 mode of a driving field
 
         Parameters
         ----------
@@ -189,18 +202,45 @@ class OpticalTransition:
             The Rabi angular frequency
         """
         if self.RabiAngularFreq_from_Power is None:
-            rabiFreq = cs().getRabiFrequency(n1=self.n1, l1=self.l1,
-                                               j1=self.j1,
-                                               mj1=self.mj1,
-                                               n2=self.n2,
-                                               l2=self.l2,
-                                               j2=self.j2, q=self.q,
-                                               laserPower=laserPower,
-                                               laserWaist=self.laserWaist)
+            mj2 = self.mj1 + self.q
+            if np.abs(mj2) - 0.1 > self.j2:
+                print(f"Are you sure you set q={self.q} correctly for mj1={self.mj1} and mj2={mj2}?")
+                print("Rabi angular frequency will be set to 0")
+                return 0
+            maxIntensity = 2 * laserPower / (pi * self.laserWaist**2)
+            electricField = np.sqrt(2.0 * maxIntensity / (C_c * epsilon_0))
+            dipole = self.matrixElement * C_e * physical_constants['Bohr radius'][0]
+            rabiFreq = np.abs(dipole) * electricField / hbar
         else:
             rabiFreq = self.RabiAngularFreq_from_Power(laserPower)
 
         return rabiFreq
+
+    def get_driving_power(self, rabiFreq):
+        """
+        Returns the power of the driving laser for a given Rabi angular frequency.
+
+        Parameters
+        ----------
+        rabiFreq : float
+            The Rabi angular frequency, in rad/s.
+
+        Returns
+        -------
+        float
+            The power of the driving laser, in W.
+        """
+        if self.Power_from_RabiAngularFreq is None:
+            mj2 = self.mj1 + self.q
+            if np.abs(mj2) - 0.1 > self.j2:
+                print(f"Are you sure you set q={self.q} correctly for mj1={self.mj1} and mj2={mj2}?")
+                print("Rabi angular frequency will be set to 0")
+                return 0
+            dipole = self.matrixElement * C_e * physical_constants['Bohr radius'][0]
+            power = np.pi/4 * C_c * epsilon_0 * (self.laserWaist * hbar * rabiFreq / np.abs(dipole))**2
+            return power
+        else:
+            return self.Power_from_RabiAngularFreq(rabiFreq)
 
     def get_saturation_power(self):
         """
@@ -222,9 +262,9 @@ class OpticalTransition:
 
 
 class RydbergTransition:
-    def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, f1=4,
-                 q1=1, n2=7, l2=1, j2=1.5, mj2=1.5, f2=5, q2=1, n3=47, l3=2,
-                 j3=2.5, mj3=2.5, f3=5):
+    def __init__(self, laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, f1=None, mf1=None,
+                 q1=1, n2=7, l2=1, j2=1.5, mj2=1.5, f2=None, mf2=None, q2=1, n3=47, l3=2,
+                 j3=2.5, mj3=2.5, f3=None, mf3=None):
         """
         Initialize a Rydberg transition with specified quantum numbers and laser parameters.
 
@@ -276,12 +316,12 @@ class RydbergTransition:
         """
         self.transition1 = OpticalTransition(laserWaist=laserWaist,
                                              n1=n1, l1=l1, j1=j1, mj1=mj1,
-                                             f1=f1, n2=n2, l2=l2, j2=j2,
-                                             mj2=mj2, f2=f2, q=q1)
+                                             f1=f1, mf1=mf1, n2=n2, l2=l2, j2=j2,
+                                             mj2=mj2, f2=f2, mf2=mf2, q=q1)
         self.transition2 = OpticalTransition(laserWaist=laserWaist,
                                              n1=n2, l1=l2, j1=j2, mj1=mj2,
-                                             f1=f2, n2=n3, l2=l3, j2=j3,
-                                             mj2=mj3, f2=f3, q=q2)
+                                             f1=f2, mf1=mf2, n2=n3, l2=l3, j2=j3,
+                                             mj2=mj3, f2=f3, mf2=mf3, q=q2)
 
     def get_balanced_laser_power(self, probe_power=None, couple_power=None):
         """
@@ -303,16 +343,20 @@ class RydbergTransition:
             The power of the couple laser, in W.
         """
         if probe_power is None:
-            couple_rabi = self.transition2.RabiAngularFreq_from_Power(
-                couple_power)
-            probe_power = self.transition1.Power_from_RabiAngularFreq(
-                couple_rabi)
+            # couple_rabi = self.transition2.RabiAngularFreq_from_Power(
+            #     couple_power)
+            # probe_power = self.transition1.Power_from_RabiAngularFreq(
+            #     couple_rabi)
+            couple_rabi = self.transition2.get_rabi_angular_freq(couple_power)
+            probe_power = self.transition1.get_driving_power(couple_rabi)
             return probe_power
         elif couple_power is None:
-            probe_rabi = self.transition1.RabiAngularFreq_from_Power(
-                probe_power)
-            couple_power = self.transition2.Power_from_RabiAngularFreq(
-                probe_rabi)
+            # probe_rabi = self.transition1.RabiAngularFreq_from_Power(
+            #     probe_power)
+            # couple_power = self.transition2.Power_from_RabiAngularFreq(
+            #     probe_rabi)
+            probe_rabi = self.transition1.get_rabi_angular_freq(probe_power)
+            couple_power = self.transition2.get_driving_power(probe_rabi)
             return couple_power
         else:
             print("You messed up")
