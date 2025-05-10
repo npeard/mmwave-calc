@@ -14,10 +14,12 @@ def test_transition_frequencies_n47_n41():
     transitions to n=47 and n=41 Rydberg states.
     """
     # Initialize transitions
-    n47_transition = RydbergTransition(laserWaist=25e-6, n1=6, l1=0, j1=0.5,
-                 mj1=0.5, f1=4, n2=7, l2=1, j2=1.5, mj2=1.5, f2=5, n3=47, l3=2, j3=2.5, mj3=1.5, f3=5)
-    n41_transition = RydbergTransition(laserWaist=25e-6, n1=6, l1=0, j1=0.5,
-                 mj1=0.5, n2=7, l2=1, j2=1.5, mj2=1.5, f2=5, q2=-1, n3=41, l3=0, j3=0.5, mj3=0.5, f3=4)
+    n47_transition = RydbergTransition(laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, f1=4, mf1=4, q1=1,
+                                        n2=7, l2=1, j2=1.5, mj2=1.5, f2=5, mf2=5, q2=1,
+                                        n3=47, l3=2, j3=2.5, mj3=2.5, f3=6, mf3=6)
+    n41_transition = RydbergTransition(laserWaist=25e-6, n1=6, l1=0, j1=0.5, mj1=0.5, f1=4, mf1=4, q1=1,
+                                        n2=7, l2=1, j2=1.5, mj2=1.5, f2=5, mf2=5, q2=-1,
+                                        n3=41, l3=0, j3=0.5, mj3=0.5, f3=4, mf3=4)
 
     # n=47 transition frequencies
     trans1_47 = n47_transition.transition1.get_transition_freq()
