@@ -72,15 +72,18 @@
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cesium</span> <span class="k">as</span> <span class="n">cs</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">interp1d</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">physical_constants</span><span class="p">,</span> <span class="n">pi</span><span class="p">,</span> <span class="n">epsilon_0</span><span class="p">,</span> <span class="n">hbar</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">c</span> <span class="k">as</span> <span class="n">C_c</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">e</span> <span class="k">as</span> <span class="n">C_e</span>
 
 <div class="viewcode-block" id="OpticalTransition">
 <a class="viewcode-back" href="../../api.html#models.rydberg_calcs.OpticalTransition">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">OpticalTransition</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">laserWaist</span><span class="o">=</span><span class="mf">25e-6</span><span class="p">,</span> <span class="n">n1</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">l1</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">j1</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">mj1</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">f1</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-                 <span class="n">n2</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">l2</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">j2</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">mj2</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">laserWaist</span><span class="o">=</span><span class="mf">25e-6</span><span class="p">,</span> <span class="n">n1</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">l1</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">j1</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">mj1</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">f1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mf1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">n2</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">l2</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">j2</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">mj2</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mf2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize a transition between two energy levels in Cesium. Default</span>
-<span class="sd">        is the Cs F=4 GS to 7P3/2 transition.</span>
+<span class="sd">        Initialize an electric dipole transition between two energy levels in Cesium. Default</span>
+<span class="sd">        is the Cs F=4 GS to 7P3/2 F=5 transition.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -124,17 +127,39 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">j1</span> <span class="o">=</span> <span class="n">j1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mj1</span> <span class="o">=</span> <span class="n">mj1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">f1</span> <span class="o">=</span> <span class="n">f1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mf1</span> <span class="o">=</span> <span class="n">mf1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n2</span> <span class="o">=</span> <span class="n">n2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">l2</span> <span class="o">=</span> <span class="n">l2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">j2</span> <span class="o">=</span> <span class="n">j2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mj2</span> <span class="o">=</span> <span class="n">mj2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">f2</span> <span class="o">=</span> <span class="n">f2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mf2</span> <span class="o">=</span> <span class="n">mf2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">q</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">f1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">f2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">mf1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">mf2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">matrixElement</span> <span class="o">=</span> <span class="n">cs</span><span class="p">()</span><span class="o">.</span><span class="n">getDipoleMatrixElementHFS</span><span class="p">(</span><span class="n">n1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n1</span><span class="p">,</span> <span class="n">l1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">l1</span><span class="p">,</span>
+                                                    <span class="n">j1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j1</span><span class="p">,</span> <span class="n">f1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">f1</span><span class="p">,</span> <span class="n">mf1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mf1</span><span class="p">,</span>
+                                                    <span class="n">n2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n2</span><span class="p">,</span> <span class="n">l2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">l2</span><span class="p">,</span>
+                                                    <span class="n">j2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">f2</span><span class="p">,</span>
+                                                    <span class="n">mf2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mf2</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using HFS matrix element </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">matrixElement</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;HFS quantum numbers not defined&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to get HFS matrix element for transition to n=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n2</span><span class="si">}</span><span class="s2">, l=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">l2</span><span class="si">}</span><span class="s2">, j=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="si">}</span><span class="s2">, f=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">f2</span><span class="si">}</span><span class="s2">, mf=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mf2</span><span class="si">}</span><span class="s2">, q=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">matrixElement</span> <span class="o">=</span> <span class="n">cs</span><span class="p">()</span><span class="o">.</span><span class="n">getDipoleMatrixElement</span><span class="p">(</span><span class="n">n1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n1</span><span class="p">,</span> <span class="n">l1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">l1</span><span class="p">,</span>
+                                                   <span class="n">j1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j1</span><span class="p">,</span> <span class="n">mj1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mj1</span><span class="p">,</span>
+                                                   <span class="n">n2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n2</span><span class="p">,</span> <span class="n">l2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">l2</span><span class="p">,</span>
+                                                   <span class="n">j2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="p">,</span> <span class="n">mj2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mj2</span><span class="p">,</span>
+                                                   <span class="n">q</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using non-HFS matrix element </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">matrixElement</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">RabiAngularFreq_from_Power</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Power_from_RabiAngularFreq</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">init_fast_lookup</span><span class="p">()</span>
+        <span class="c1">#self.init_fast_lookup()</span>
 
 <div class="viewcode-block" id="OpticalTransition.init_fast_lookup">
 <a class="viewcode-back" href="../../api.html#models.rydberg_calcs.OpticalTransition.init_fast_lookup">[docs]</a>
@@ -180,21 +205,23 @@
                                                    <span class="n">power</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;cubic&#39;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="OpticalTransition.get_linewidth">
-<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.OpticalTransition.get_linewidth">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_linewidth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="OpticalTransition.get_natural_linewidth">
+<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.OpticalTransition.get_natural_linewidth">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_natural_linewidth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This function computes the linewidth of the excited state, given by the</span>
-<span class="sd">        inverse of the lifetime of the state.</span>
+<span class="sd">        This function computes the natural linewidth of the excited state, given by the</span>
+<span class="sd">        inverse of the lifetime of the state. This is the natural linewidth (rad/s), strangely,</span>
+<span class="sd">        and not simply a rate in Hz. But this is how Steck does it, so...</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        gamma : float</span>
-<span class="sd">            The linewidth of the excited state, in Hz.</span>
+<span class="sd">            The linewidth of the excited state, in radians*Hz or radians per second.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">gamma</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">cs</span><span class="p">()</span><span class="o">.</span><span class="n">getStateLifetime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">l2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="p">,</span>
                                            <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span>
                                            <span class="n">includeLevelsUpTo</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n2</span> <span class="o">+</span> <span class="mi">5</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">gamma</span></div>
 
 
@@ -217,18 +244,26 @@
                                            <span class="n">l2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">l2</span><span class="p">,</span> <span class="n">j2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="p">)</span>
 
         <span class="c1"># HFS energy shift, ARC database doesn&#39;t have values for Rydbergs n &gt; ?</span>
-        <span class="n">HFS_g</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">HFS_e</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n1</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
             <span class="n">HFS_g</span> <span class="o">=</span> <span class="n">cs</span><span class="p">()</span><span class="o">.</span><span class="n">getHFSEnergyShift</span><span class="p">(</span><span class="n">j</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j1</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">f1</span><span class="p">,</span>
                                            <span class="n">A</span><span class="o">=</span><span class="n">cs</span><span class="p">()</span><span class="o">.</span><span class="n">getHFSCoefficients</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n1</span><span class="p">,</span>
                                                                      <span class="n">l</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">l1</span><span class="p">,</span>
                                                                      <span class="n">j</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j1</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n2</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;HFS energy shift not found for n=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n1</span><span class="si">}</span><span class="s2">, l=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">l1</span><span class="si">}</span><span class="s2">, j=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">j1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ARC database doesn&#39;t have HFS values for Rydbergs n &gt; ?&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Setting HFS energy shift to 0&quot;</span><span class="p">)</span>
+            <span class="n">HFS_g</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">try</span><span class="p">:</span>
             <span class="n">HFS_e</span> <span class="o">=</span> <span class="n">cs</span><span class="p">()</span><span class="o">.</span><span class="n">getHFSEnergyShift</span><span class="p">(</span><span class="n">j</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">f2</span><span class="p">,</span>
                                            <span class="n">A</span><span class="o">=</span><span class="n">cs</span><span class="p">()</span><span class="o">.</span><span class="n">getHFSCoefficients</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n2</span><span class="p">,</span>
                                                                      <span class="n">l</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">l2</span><span class="p">,</span>
                                                                      <span class="n">j</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;HFS energy shift not found for n=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n2</span><span class="si">}</span><span class="s2">, l=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">l2</span><span class="si">}</span><span class="s2">, j=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ARC database doesn&#39;t have HFS values for Rydbergs n &gt; ?&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Setting HFS energy shift to 0&quot;</span><span class="p">)</span>
+            <span class="n">HFS_e</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="k">return</span> <span class="n">freq</span> <span class="o">-</span> <span class="n">HFS_g</span> <span class="o">+</span> <span class="n">HFS_e</span></div>
 
@@ -237,7 +272,8 @@
 <a class="viewcode-back" href="../../api.html#models.rydberg_calcs.OpticalTransition.get_rabi_angular_freq">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_rabi_angular_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">laserPower</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Compute the Rabi angular frequency for the transition.</span>
+<span class="sd">        Returns a Rabi angular frequency for resonantly driven atom in a</span>
+<span class="sd">        center of TEM00 mode of a driving field</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -250,18 +286,48 @@
 <span class="sd">            The Rabi angular frequency</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">RabiAngularFreq_from_Power</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">rabiFreq</span> <span class="o">=</span> <span class="n">cs</span><span class="p">()</span><span class="o">.</span><span class="n">getRabiFrequency</span><span class="p">(</span><span class="n">n1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n1</span><span class="p">,</span> <span class="n">l1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">l1</span><span class="p">,</span>
-                                               <span class="n">j1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j1</span><span class="p">,</span>
-                                               <span class="n">mj1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mj1</span><span class="p">,</span>
-                                               <span class="n">n2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n2</span><span class="p">,</span>
-                                               <span class="n">l2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">l2</span><span class="p">,</span>
-                                               <span class="n">j2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
-                                               <span class="n">laserPower</span><span class="o">=</span><span class="n">laserPower</span><span class="p">,</span>
-                                               <span class="n">laserWaist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">laserWaist</span><span class="p">)</span>
+            <span class="n">mj2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mj1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mj2</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.1</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Are you sure you set q=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="si">}</span><span class="s2"> correctly for mj1=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mj1</span><span class="si">}</span><span class="s2"> and mj2=</span><span class="si">{</span><span class="n">mj2</span><span class="si">}</span><span class="s2">?&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Rabi angular frequency will be set to 0&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">0</span>
+            <span class="n">maxIntensity</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">laserPower</span> <span class="o">/</span> <span class="p">(</span><span class="n">pi</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">laserWaist</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">electricField</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">maxIntensity</span> <span class="o">/</span> <span class="p">(</span><span class="n">C_c</span> <span class="o">*</span> <span class="n">epsilon_0</span><span class="p">))</span>
+            <span class="n">dipole</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">matrixElement</span> <span class="o">*</span> <span class="n">C_e</span> <span class="o">*</span> <span class="n">physical_constants</span><span class="p">[</span><span class="s1">&#39;Bohr radius&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">rabiFreq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dipole</span><span class="p">)</span> <span class="o">*</span> <span class="n">electricField</span> <span class="o">/</span> <span class="n">hbar</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">rabiFreq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">RabiAngularFreq_from_Power</span><span class="p">(</span><span class="n">laserPower</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">rabiFreq</span></div>
+
+
+<div class="viewcode-block" id="OpticalTransition.get_driving_power">
+<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.OpticalTransition.get_driving_power">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_driving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rabiFreq</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the power of the driving laser for a given Rabi angular frequency.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        rabiFreq : float</span>
+<span class="sd">            The Rabi angular frequency, in rad/s.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The power of the driving laser, in W.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Power_from_RabiAngularFreq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mj2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mj1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mj2</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.1</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Are you sure you set q=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="si">}</span><span class="s2"> correctly for mj1=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mj1</span><span class="si">}</span><span class="s2"> and mj2=</span><span class="si">{</span><span class="n">mj2</span><span class="si">}</span><span class="s2">?&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Rabi angular frequency will be set to 0&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">0</span>
+            <span class="n">dipole</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">matrixElement</span> <span class="o">*</span> <span class="n">C_e</span> <span class="o">*</span> <span class="n">physical_constants</span><span class="p">[</span><span class="s1">&#39;Bohr radius&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">power</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span> <span class="o">*</span> <span class="n">C_c</span> <span class="o">*</span> <span class="n">epsilon_0</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">laserWaist</span> <span class="o">*</span> <span class="n">hbar</span> <span class="o">*</span> <span class="n">rabiFreq</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dipole</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span>
+            <span class="k">return</span> <span class="n">power</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Power_from_RabiAngularFreq</span><span class="p">(</span><span class="n">rabiFreq</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="OpticalTransition.get_saturation_power">
@@ -287,21 +353,19 @@
 
 
 
-<span class="c1"># TODO: refactor this class to use two 2-level transitions for maximum code</span>
-<span class="c1">#  reuse</span>
 <div class="viewcode-block" id="RydbergTransition">
 <a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">RydbergTransition</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">laserWaist</span><span class="o">=</span><span class="mf">25e-6</span><span class="p">,</span> <span class="n">laserWaist2</span><span class="o">=</span><span class="mf">25e-6</span><span class="p">,</span> <span class="n">n1</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">l1</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">j1</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">mj1</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">f1</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-                 <span class="n">q1</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n2</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">l2</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">j2</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">mj2</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">q2</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n3</span><span class="o">=</span><span class="mi">47</span><span class="p">,</span> <span class="n">l3</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                 <span class="n">j3</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">mj3</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">f3</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">laserWaist</span><span class="o">=</span><span class="mf">25e-6</span><span class="p">,</span> <span class="n">n1</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">l1</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">j1</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">mj1</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">f1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mf1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">q1</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n2</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">l2</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">j2</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">mj2</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mf2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q2</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n3</span><span class="o">=</span><span class="mi">47</span><span class="p">,</span> <span class="n">l3</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                 <span class="n">j3</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">mj3</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">f3</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mf3</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize a Rydberg transition with specified quantum numbers and laser parameters.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        laserWaist : float, optional</span>
-<span class="sd">            The waist of the laser in meters. Defaults to 25e-6. Inputs two for two lasers</span>
+<span class="sd">            The waist of the laser in meters. Defaults to 25e-6.</span>
 <span class="sd">        n1 : int, optional</span>
 <span class="sd">            The principal quantum number of the first state. Defaults to 6.</span>
 <span class="sd">        l1 : int, optional</span>
@@ -346,12 +410,12 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">transition1</span> <span class="o">=</span> <span class="n">OpticalTransition</span><span class="p">(</span><span class="n">laserWaist</span><span class="o">=</span><span class="n">laserWaist</span><span class="p">,</span>
                                              <span class="n">n1</span><span class="o">=</span><span class="n">n1</span><span class="p">,</span> <span class="n">l1</span><span class="o">=</span><span class="n">l1</span><span class="p">,</span> <span class="n">j1</span><span class="o">=</span><span class="n">j1</span><span class="p">,</span> <span class="n">mj1</span><span class="o">=</span><span class="n">mj1</span><span class="p">,</span>
-                                             <span class="n">f1</span><span class="o">=</span><span class="n">f1</span><span class="p">,</span> <span class="n">n2</span><span class="o">=</span><span class="n">n2</span><span class="p">,</span> <span class="n">l2</span><span class="o">=</span><span class="n">l2</span><span class="p">,</span> <span class="n">j2</span><span class="o">=</span><span class="n">j2</span><span class="p">,</span>
-                                             <span class="n">mj2</span><span class="o">=</span><span class="n">mj2</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="n">f2</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="n">q1</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span> <span class="o">=</span> <span class="n">OpticalTransition</span><span class="p">(</span><span class="n">laserWaist</span><span class="o">=</span><span class="n">laserWaist2</span><span class="p">,</span>
+                                             <span class="n">f1</span><span class="o">=</span><span class="n">f1</span><span class="p">,</span> <span class="n">mf1</span><span class="o">=</span><span class="n">mf1</span><span class="p">,</span> <span class="n">n2</span><span class="o">=</span><span class="n">n2</span><span class="p">,</span> <span class="n">l2</span><span class="o">=</span><span class="n">l2</span><span class="p">,</span> <span class="n">j2</span><span class="o">=</span><span class="n">j2</span><span class="p">,</span>
+                                             <span class="n">mj2</span><span class="o">=</span><span class="n">mj2</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="n">f2</span><span class="p">,</span> <span class="n">mf2</span><span class="o">=</span><span class="n">mf2</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="n">q1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span> <span class="o">=</span> <span class="n">OpticalTransition</span><span class="p">(</span><span class="n">laserWaist</span><span class="o">=</span><span class="n">laserWaist</span><span class="p">,</span>
                                              <span class="n">n1</span><span class="o">=</span><span class="n">n2</span><span class="p">,</span> <span class="n">l1</span><span class="o">=</span><span class="n">l2</span><span class="p">,</span> <span class="n">j1</span><span class="o">=</span><span class="n">j2</span><span class="p">,</span> <span class="n">mj1</span><span class="o">=</span><span class="n">mj2</span><span class="p">,</span>
-                                             <span class="n">f1</span><span class="o">=</span><span class="n">f2</span><span class="p">,</span> <span class="n">n2</span><span class="o">=</span><span class="n">n3</span><span class="p">,</span> <span class="n">l2</span><span class="o">=</span><span class="n">l3</span><span class="p">,</span> <span class="n">j2</span><span class="o">=</span><span class="n">j3</span><span class="p">,</span>
-                                             <span class="n">mj2</span><span class="o">=</span><span class="n">mj3</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="n">f3</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="n">q2</span><span class="p">)</span>
+                                             <span class="n">f1</span><span class="o">=</span><span class="n">f2</span><span class="p">,</span> <span class="n">mf1</span><span class="o">=</span><span class="n">mf2</span><span class="p">,</span> <span class="n">n2</span><span class="o">=</span><span class="n">n3</span><span class="p">,</span> <span class="n">l2</span><span class="o">=</span><span class="n">l3</span><span class="p">,</span> <span class="n">j2</span><span class="o">=</span><span class="n">j3</span><span class="p">,</span>
+                                             <span class="n">mj2</span><span class="o">=</span><span class="n">mj3</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="n">f3</span><span class="p">,</span> <span class="n">mf2</span><span class="o">=</span><span class="n">mf3</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="n">q2</span><span class="p">)</span>
 
 <div class="viewcode-block" id="RydbergTransition.get_balanced_laser_power">
 <a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_balanced_laser_power">[docs]</a>
@@ -375,16 +439,20 @@
 <span class="sd">            The power of the couple laser, in W.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">probe_power</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">couple_rabi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">RabiAngularFreq_from_Power</span><span class="p">(</span>
-                <span class="n">couple_power</span><span class="p">)</span>
-            <span class="n">probe_power</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition1</span><span class="o">.</span><span class="n">Power_from_RabiAngularFreq</span><span class="p">(</span>
-                <span class="n">couple_rabi</span><span class="p">)</span>
+            <span class="c1"># couple_rabi = self.transition2.RabiAngularFreq_from_Power(</span>
+            <span class="c1">#     couple_power)</span>
+            <span class="c1"># probe_power = self.transition1.Power_from_RabiAngularFreq(</span>
+            <span class="c1">#     couple_rabi)</span>
+            <span class="n">couple_rabi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">get_rabi_angular_freq</span><span class="p">(</span><span class="n">couple_power</span><span class="p">)</span>
+            <span class="n">probe_power</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition1</span><span class="o">.</span><span class="n">get_driving_power</span><span class="p">(</span><span class="n">couple_rabi</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">probe_power</span>
         <span class="k">elif</span> <span class="n">couple_power</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">probe_rabi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition1</span><span class="o">.</span><span class="n">RabiAngularFreq_from_Power</span><span class="p">(</span>
-                <span class="n">probe_power</span><span class="p">)</span>
-            <span class="n">couple_power</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">Power_from_RabiAngularFreq</span><span class="p">(</span>
-                <span class="n">probe_rabi</span><span class="p">)</span>
+            <span class="c1"># probe_rabi = self.transition1.RabiAngularFreq_from_Power(</span>
+            <span class="c1">#     probe_power)</span>
+            <span class="c1"># couple_power = self.transition2.Power_from_RabiAngularFreq(</span>
+            <span class="c1">#     probe_rabi)</span>
+            <span class="n">probe_rabi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition1</span><span class="o">.</span><span class="n">get_rabi_angular_freq</span><span class="p">(</span><span class="n">probe_power</span><span class="p">)</span>
+            <span class="n">couple_power</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">get_driving_power</span><span class="p">(</span><span class="n">probe_rabi</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">couple_power</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;You messed up&quot;</span><span class="p">)</span>
@@ -425,8 +493,8 @@
 <span class="sd">        the Rydberg parameters notebook.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">gamma2</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">gamma3</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">gamma2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition1</span><span class="o">.</span><span class="n">get_linewidth</span><span class="p">()</span>
-            <span class="n">gamma3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">get_linewidth</span><span class="p">()</span>
+            <span class="n">gamma2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition1</span><span class="o">.</span><span class="n">get_natural_linewidth</span><span class="p">()</span>
+            <span class="n">gamma3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">get_natural_linewidth</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">rabiFreq1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">rabiFreq2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">Delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">rabiFreq2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">gamma2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">gamma3</span><span class="p">))</span>
@@ -442,7 +510,7 @@
 
 <div class="viewcode-block" id="RydbergTransition.get_total_rabi_angular_freq">
 <a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.get_total_rabi_angular_freq">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_total_rabi_angular_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">,</span> <span class="n">resonance</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">Delta0</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_total_rabi_angular_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">,</span> <span class="n">resonance</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute the total Rabi angular frequency of the two-photon transition.</span>
 
@@ -473,9 +541,8 @@
         <span class="n">rabiFreq_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition1</span><span class="o">.</span><span class="n">get_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pp</span><span class="p">)</span>
         <span class="n">rabiFreq_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">get_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pc</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">resonance</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">Delta0</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">Delta0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optimal_detuning</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">=</span><span class="n">rabiFreq_1</span><span class="p">,</span>
-                                                   <span class="n">rabiFreq2</span><span class="o">=</span><span class="n">rabiFreq_2</span><span class="p">)</span>
+            <span class="n">Delta0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optimal_detuning</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">=</span><span class="n">rabiFreq_1</span><span class="p">,</span>
+                                               <span class="n">rabiFreq2</span><span class="o">=</span><span class="n">rabiFreq_2</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">rabiFreq_1</span> <span class="o">*</span> <span class="n">rabiFreq_2</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">Delta0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">rabiFreq_1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">rabiFreq_2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span></div>
@@ -547,7 +614,7 @@
 
 <div class="viewcode-block" id="RydbergTransition.print_laser_frequencies">
 <a class="viewcode-back" href="../../api.html#models.rydberg_calcs.RydbergTransition.print_laser_frequencies">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">print_laser_frequencies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">,</span> <span class="n">AOM456</span><span class="o">=-</span><span class="mf">220e6</span><span class="p">,</span> <span class="n">AOM1064</span><span class="o">=-</span><span class="mf">220e6</span><span class="p">,</span> <span class="n">Delta</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">print_laser_frequencies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">,</span> <span class="n">AOM456</span><span class="o">=-</span><span class="mf">220e6</span><span class="p">,</span> <span class="n">AOM1064</span><span class="o">=-</span><span class="mf">220e6</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Print out the relevant laser frequencies and power broadenings for</span>
 <span class="sd">        a given Rydberg transition. Mainly used for tuning parameters in the</span>
@@ -565,9 +632,6 @@
 <span class="sd">        AOM1064 : float, optional</span>
 <span class="sd">            The frequency shift of the coupling laser due to the AOM, in Hz.</span>
 <span class="sd">            Defaults to -220e6 since there are two -1 order 110 MHz AOMs.</span>
-<span class="sd">        Delta: float, optional</span>
-<span class="sd">            Angular frequency of the detuning of the laser, in Hz.</span>
-<span class="sd">            Defaults to None, and then uses get_optimal_detuning.</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
@@ -576,23 +640,13 @@
 <span class="sd">        frequency is given in MHz. The pi pulse duration is given in ns.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">trans1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition1</span><span class="o">.</span><span class="n">get_transition_freq</span><span class="p">()</span>
-        <span class="n">line1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition1</span><span class="o">.</span><span class="n">get_linewidth</span><span class="p">()</span>
+        <span class="n">line1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition1</span><span class="o">.</span><span class="n">get_natural_linewidth</span><span class="p">()</span>
         <span class="n">trans2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">get_transition_freq</span><span class="p">()</span>
-        <span class="n">line2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">get_linewidth</span><span class="p">()</span>
+        <span class="n">line2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">get_natural_linewidth</span><span class="p">()</span>
         <span class="n">rabiFreq_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition1</span><span class="o">.</span><span class="n">get_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pp</span><span class="p">)</span>
         <span class="n">rabiFreq_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">get_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">Pc</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">Delta</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">Delta0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optimal_detuning</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">=</span><span class="n">rabiFreq_1</span><span class="p">,</span>
-                                               <span class="n">rabiFreq2</span><span class="o">=</span><span class="n">rabiFreq_2</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span> 
-            <span class="n">Delta0</span> <span class="o">=</span> <span class="n">Delta</span>
-
-        <span class="n">probe_freq</span> <span class="o">=</span> <span class="p">(</span><span class="n">trans1</span> <span class="o">+</span> <span class="n">Delta0</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span> <span class="o">*</span> <span class="mf">1e-9</span>
-        <span class="n">couple_freq</span> <span class="o">=</span> <span class="p">(</span><span class="n">trans2</span> <span class="o">-</span> <span class="n">Delta0</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span> <span class="o">*</span> <span class="mf">1e-9</span>
-        <span class="n">two_photon_rabi</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_total_rabi_angular_freq</span><span class="p">(</span><span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">)</span> 
-                           <span class="o">*</span> <span class="mf">1e-6</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span>
-        <span class="n">det</span> <span class="o">=</span> <span class="n">Delta0</span>
-        
+        <span class="n">Delta0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optimal_detuning</span><span class="p">(</span><span class="n">rabiFreq1</span><span class="o">=</span><span class="n">rabiFreq_1</span><span class="p">,</span>
+                                           <span class="n">rabiFreq2</span><span class="o">=</span><span class="n">rabiFreq_2</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Probe laser frequency (no AOM)&quot;</span><span class="p">,</span> <span class="n">trans1</span> <span class="o">*</span> <span class="mf">1e-9</span><span class="p">,</span> <span class="s2">&quot;GHz&quot;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Probe laser frequency (with AOM)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">trans1</span> <span class="o">-</span> <span class="n">AOM456</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-9</span><span class="p">,</span>
@@ -607,11 +661,8 @@
         <span class="nb">print</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Power Broadening $\sqrt(2)*\Omega = $&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span>
               <span class="n">rabiFreq_2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="s2">&quot;MHz&quot;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Natural Linewidth&quot;</span><span class="p">,</span> <span class="n">line2</span> <span class="o">*</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="s2">&quot;MHz&quot;</span><span class="p">)</span>
-        
-        <span class="k">if</span> <span class="n">Delta</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Optimal detuning&quot;</span><span class="p">,</span> <span class="n">Delta0</span> <span class="o">*</span> <span class="mf">1e-9</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span> <span class="s2">&quot;GHz &quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Detuning&quot;</span><span class="p">,</span> <span class="n">Delta0</span> <span class="o">*</span> <span class="mf">1e-9</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span> <span class="s2">&quot;GHz &quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Optimal detuning&quot;</span><span class="p">,</span> <span class="n">Delta0</span> <span class="o">*</span> <span class="mf">1e-9</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span> <span class="s2">&quot;GHz &quot;</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Optimal probe frequency (with AOM)&quot;</span><span class="p">,</span>
               <span class="p">(</span><span class="n">trans1</span> <span class="o">+</span> <span class="n">Delta0</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">-</span> <span class="n">AOM456</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-9</span><span class="p">,</span> <span class="s2">&quot;GHz&quot;</span><span class="p">)</span>
@@ -620,9 +671,7 @@
 
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Expected Rabi Frequency = 2*pi&quot;</span><span class="p">,</span>
               <span class="bp">self</span><span class="o">.</span><span class="n">get_total_rabi_angular_freq</span><span class="p">(</span><span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-6</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span> <span class="s2">&quot;MHz&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Pi Pulse Duration&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pi_pulse_duration</span><span class="p">(</span><span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e9</span><span class="p">,</span> <span class="s2">&quot;ns&quot;</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">probe_freq</span><span class="p">,</span> <span class="n">couple_freq</span><span class="p">,</span> <span class="n">two_photon_rabi</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">rabiFreq_1</span><span class="p">,</span> <span class="n">rabiFreq_2</span></div>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Pi Pulse Duration&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pi_pulse_duration</span><span class="p">(</span><span class="n">Pp</span><span class="p">,</span> <span class="n">Pc</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e9</span><span class="p">,</span> <span class="s2">&quot;ns&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="RydbergTransition.print_saturation_powers">
@@ -645,28 +694,6 @@
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Saturation Power R (mW)&quot;</span><span class="p">,</span> <span class="n">satPower_R</span> <span class="o">*</span> <span class="mf">1e3</span><span class="p">)</span></div>
 </div>
 
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">transition40</span> <span class="o">=</span> <span class="n">RydbergTransition</span><span class="p">(</span><span class="n">laserWaist1</span><span class="o">=</span><span class="mf">25e-6</span><span class="p">,</span> <span class="n">n1</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">l1</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">j1</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
-                                     <span class="n">mj1</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">f1</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">q1</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n2</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">l2</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">j2</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
-                                     <span class="n">mj2</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">f2</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-                                     <span class="n">q2</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">n3</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">l3</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">j3</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-
-    <span class="n">transition40</span><span class="o">.</span><span class="n">print_laser_frequencies</span><span class="p">(</span><span class="n">Pp</span><span class="o">=</span><span class="mf">0.010</span><span class="p">,</span> <span class="n">Pc</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-
-    <span class="n">powers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
-    <span class="n">rabiFreqs</span> <span class="o">=</span> <span class="p">[</span><span class="n">transition40</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">RabiAngularFreq_from_Power</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span>
-                 <span class="ow">in</span> <span class="n">powers</span><span class="p">]</span>
-    <span class="n">powersOut</span> <span class="o">=</span> <span class="p">[</span><span class="n">transition40</span><span class="o">.</span><span class="n">transition2</span><span class="o">.</span><span class="n">Power_from_RabiAngularFreq</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span>
-                 <span class="n">f</span> <span class="ow">in</span>
-                 <span class="n">rabiFreqs</span><span class="p">]</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">powers</span><span class="p">,</span> <span class="n">rabiFreqs</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">powersOut</span><span class="p">,</span> <span class="n">rabiFreqs</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Power (W)&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Rabi Frequency (Hz)&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 
            </div>
