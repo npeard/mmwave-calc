@@ -50,7 +50,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.OpticalTransition.get_rabi_angular_freq"><code class="docutils literal notranslate"><span class="pre">OpticalTransition.get_rabi_angular_freq()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.OpticalTransition.get_saturation_power"><code class="docutils literal notranslate"><span class="pre">OpticalTransition.get_saturation_power()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.OpticalTransition.get_transition_freq"><code class="docutils literal notranslate"><span class="pre">OpticalTransition.get_transition_freq()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#models.rydberg_calcs.OpticalTransition.init_fast_lookup"><code class="docutils literal notranslate"><span class="pre">OpticalTransition.init_fast_lookup()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#models.rydberg_calcs.RydbergTransition"><code class="docutils literal notranslate"><span class="pre">RydbergTransition</span></code></a><ul>
@@ -232,30 +231,6 @@ hyperfine-split states.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="models.rydberg_calcs.OpticalTransition.init_fast_lookup">
-<span class="sig-name descname"><span class="pre">init_fast_lookup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/rydberg_calcs.html#OpticalTransition.init_fast_lookup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.rydberg_calcs.OpticalTransition.init_fast_lookup" title="Link to this definition"></a></dt>
-<dd><p>Initialize fast lookup functions for Rabi angular frequencies vs. power.</p>
-<p>Fast lookup functions are generated using cubic interpolation of the
-Rabi angular frequencies vs. power for the excited state and Rydberg
-state transitions. The points used for interpolation are spaced
-logarithmically between 0 and 100 mW for the excited state transition
-and linearly between 0 and 10 mW for the Rydberg state transition.</p>
-<p>The generated functions are stored as instance variables and can be
-used to quickly look up the Rabi angular frequency for a given power.
-This is useful when we want to do a long series of calculations that
-require us to compute the Rabi frequency many times and would
-otherwise be very slow in ARC.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>None</strong></p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>None</p>
 </dd>
 </dl>
 </dd></dl>

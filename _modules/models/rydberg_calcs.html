@@ -156,55 +156,6 @@
                                                    <span class="n">q</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using non-HFS matrix element </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">matrixElement</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">RabiAngularFreq_from_Power</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Power_from_RabiAngularFreq</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="c1">#self.init_fast_lookup()</span>
-
-<div class="viewcode-block" id="OpticalTransition.init_fast_lookup">
-<a class="viewcode-back" href="../../api.html#models.rydberg_calcs.OpticalTransition.init_fast_lookup">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">init_fast_lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize fast lookup functions for Rabi angular frequencies vs. power.</span>
-
-<span class="sd">        Fast lookup functions are generated using cubic interpolation of the</span>
-<span class="sd">        Rabi angular frequencies vs. power for the excited state and Rydberg</span>
-<span class="sd">        state transitions. The points used for interpolation are spaced</span>
-<span class="sd">        logarithmically between 0 and 100 mW for the excited state transition</span>
-<span class="sd">        and linearly between 0 and 10 mW for the Rydberg state transition.</span>
-
-<span class="sd">        The generated functions are stored as instance variables and can be</span>
-<span class="sd">        used to quickly look up the Rabi angular frequency for a given power.</span>
-<span class="sd">        This is useful when we want to do a long series of calculations that</span>
-<span class="sd">        require us to compute the Rabi frequency many times and would</span>
-<span class="sd">        otherwise be very slow in ARC.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        None</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        None</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">power</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
-        <span class="n">Power_from_RabiAngularFreq</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">power</span><span class="p">:</span>
-            <span class="n">Power_from_RabiAngularFreq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_rabi_angular_freq</span><span class="p">(</span><span class="n">laserPower</span><span class="o">=</span><span class="n">p</span><span class="p">))</span>
-        <span class="n">Power_from_RabiAngularFreq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Power_from_RabiAngularFreq</span><span class="p">)</span>
-
-        <span class="c1"># Add origin point</span>
-        <span class="n">power</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">Power_from_RabiAngularFreq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">Power_from_RabiAngularFreq</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">RabiAngularFreq_from_Power</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">power</span><span class="p">,</span>
-                                                   <span class="n">Power_from_RabiAngularFreq</span><span class="p">,</span>
-                                                   <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;cubic&#39;</span><span class="p">)</span>
-        <span class="c1"># inverse</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Power_from_RabiAngularFreq</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">Power_from_RabiAngularFreq</span><span class="p">,</span>
-                                                   <span class="n">power</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;cubic&#39;</span><span class="p">)</span></div>
-
-
 <div class="viewcode-block" id="OpticalTransition.get_natural_linewidth">
 <a class="viewcode-back" href="../../api.html#models.rydberg_calcs.OpticalTransition.get_natural_linewidth">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_natural_linewidth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -285,18 +236,15 @@
 <span class="sd">        rabiFreq : float</span>
 <span class="sd">            The Rabi angular frequency</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">RabiAngularFreq_from_Power</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">mj2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mj1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span>
-            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mj2</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.1</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Are you sure you set q=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="si">}</span><span class="s2"> correctly for mj1=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mj1</span><span class="si">}</span><span class="s2"> and mj2=</span><span class="si">{</span><span class="n">mj2</span><span class="si">}</span><span class="s2">?&quot;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Rabi angular frequency will be set to 0&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="mi">0</span>
-            <span class="n">maxIntensity</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">laserPower</span> <span class="o">/</span> <span class="p">(</span><span class="n">pi</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">laserWaist</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-            <span class="n">electricField</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">maxIntensity</span> <span class="o">/</span> <span class="p">(</span><span class="n">C_c</span> <span class="o">*</span> <span class="n">epsilon_0</span><span class="p">))</span>
-            <span class="n">dipole</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">matrixElement</span> <span class="o">*</span> <span class="n">C_e</span> <span class="o">*</span> <span class="n">physical_constants</span><span class="p">[</span><span class="s1">&#39;Bohr radius&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">rabiFreq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dipole</span><span class="p">)</span> <span class="o">*</span> <span class="n">electricField</span> <span class="o">/</span> <span class="n">hbar</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">rabiFreq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">RabiAngularFreq_from_Power</span><span class="p">(</span><span class="n">laserPower</span><span class="p">)</span>
+        <span class="n">mj2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mj1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mj2</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.1</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">j2</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Are you sure you set q=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="si">}</span><span class="s2"> correctly for mj1=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mj1</span><span class="si">}</span><span class="s2"> and mj2=</span><span class="si">{</span><span class="n">mj2</span><span class="si">}</span><span class="s2">?&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Rabi angular frequency will be set to 0&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="n">maxIntensity</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">laserPower</span> <span class="o">/</span> <span class="p">(</span><span class="n">pi</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">laserWaist</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">electricField</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">maxIntensity</span> <span class="o">/</span> <span class="p">(</span><span class="n">C_c</span> <span class="o">*</span> <span class="n">epsilon_0</span><span class="p">))</span>
+        <span class="n">dipole</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">matrixElement</span> <span class="o">*</span> <span class="n">C_e</span> <span class="o">*</span> <span class="n">physical_constants</span><span class="p">[</span><span class="s1">&#39;Bohr radius&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">rabiFreq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dipole</span><span class="p">)</span> <span class="o">*</span> <span class="n">electricField</span> <span class="o">/</span> <span class="n">hbar</span>
 
         <span class="k">return</span> <span class="n">rabiFreq</span></div>
 
