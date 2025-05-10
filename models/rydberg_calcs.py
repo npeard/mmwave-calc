@@ -83,52 +83,6 @@ class OpticalTransition:
                                                    q=self.q)
             print(f"Using non-HFS matrix element {self.matrixElement}")
 
-        self.RabiAngularFreq_from_Power = None
-        self.Power_from_RabiAngularFreq = None
-
-        #self.init_fast_lookup()
-
-    def init_fast_lookup(self):
-        """
-        Initialize fast lookup functions for Rabi angular frequencies vs. power.
-
-        Fast lookup functions are generated using cubic interpolation of the
-        Rabi angular frequencies vs. power for the excited state and Rydberg
-        state transitions. The points used for interpolation are spaced
-        logarithmically between 0 and 100 mW for the excited state transition
-        and linearly between 0 and 10 mW for the Rydberg state transition.
-
-        The generated functions are stored as instance variables and can be
-        used to quickly look up the Rabi angular frequency for a given power.
-        This is useful when we want to do a long series of calculations that
-        require us to compute the Rabi frequency many times and would
-        otherwise be very slow in ARC.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-        """
-        power = np.logspace(-6, 1, 200)
-        Power_from_RabiAngularFreq = []
-        for p in power:
-            Power_from_RabiAngularFreq.append(self.get_rabi_angular_freq(laserPower=p))
-        Power_from_RabiAngularFreq = np.array(Power_from_RabiAngularFreq)
-
-        # Add origin point
-        power = np.insert(power, 0, 0)
-        Power_from_RabiAngularFreq = np.insert(Power_from_RabiAngularFreq, 0, 0)
-
-        self.RabiAngularFreq_from_Power = interp1d(power,
-                                                   Power_from_RabiAngularFreq,
-                                                   kind='cubic')
-        # inverse
-        self.Power_from_RabiAngularFreq = interp1d(Power_from_RabiAngularFreq,
-                                                   power, kind='cubic')
-
     def get_natural_linewidth(self):
         """
         This function computes the natural linewidth of the excited state, given by the
@@ -201,18 +155,15 @@ class OpticalTransition:
         rabiFreq : float
             The Rabi angular frequency
         """
-        if self.RabiAngularFreq_from_Power is None:
-            mj2 = self.mj1 + self.q
-            if np.abs(mj2) - 0.1 > self.j2:
-                print(f"Are you sure you set q={self.q} correctly for mj1={self.mj1} and mj2={mj2}?")
-                print("Rabi angular frequency will be set to 0")
-                return 0
-            maxIntensity = 2 * laserPower / (pi * self.laserWaist**2)
-            electricField = np.sqrt(2.0 * maxIntensity / (C_c * epsilon_0))
-            dipole = self.matrixElement * C_e * physical_constants['Bohr radius'][0]
-            rabiFreq = np.abs(dipole) * electricField / hbar
-        else:
-            rabiFreq = self.RabiAngularFreq_from_Power(laserPower)
+        mj2 = self.mj1 + self.q
+        if np.abs(mj2) - 0.1 > self.j2:
+            print(f"Are you sure you set q={self.q} correctly for mj1={self.mj1} and mj2={mj2}?")
+            print("Rabi angular frequency will be set to 0")
+            return 0
+        maxIntensity = 2 * laserPower / (pi * self.laserWaist**2)
+        electricField = np.sqrt(2.0 * maxIntensity / (C_c * epsilon_0))
+        dipole = self.matrixElement * C_e * physical_constants['Bohr radius'][0]
+        rabiFreq = np.abs(dipole) * electricField / hbar
 
         return rabiFreq
 
